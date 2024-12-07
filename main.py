@@ -63,16 +63,24 @@ class GraphApp(QMainWindow):
         nodes = self.node_input.text().split(",")
         edges = [tuple(edge.split("-")) for edge in self.edge_input.text().split(",") if "-" in edge]
 
+        print(edges)
+
         # Create graph
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_nodes_from(nodes)
         G.add_edges_from(edges)
 
         # Use a circular layout for better visualization of small graphs
-        pos = nx.circular_layout(G)
+        pos = nx.spring_layout(G, seed=1)
 
         # Draw the graph
-        nx.draw(G, pos, ax=self.ax, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=10)
+        #nx.draw(G, pos, ax=self.ax, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1000, width=2, font_size=10)
+
+        nx.draw_networkx(
+            G, pos, ax=self.ax, 
+            node_size=500, node_color='blue', with_labels=True,
+            width=2)
+        nx.draw_networkx_edges(G, pos, ax=self.ax, arrows=True, arrowsize=25, arrowstyle="-|>")
 
         # Add title and update canvas
         self.ax.set_title("Graph Visualization", fontsize=14)
@@ -84,3 +92,7 @@ if __name__ == "__main__":
     window = GraphApp()
     window.show()
     sys.exit(app.exec())
+
+
+    #A1-A2,A2-A3,B1-B2,B2-B3,C1-C2,C2-C3,A1-B1,B1-C1,A2-B2,B2-C2,A3-B3,B3-C3
+    #A1,A2,A3,B1,B2,B3,C1,C2,C3
