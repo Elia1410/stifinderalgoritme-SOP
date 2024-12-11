@@ -61,20 +61,21 @@ class Graph:
 
         # Der genereres en dictionary indeholdende samtlige knuder i grafen
         # for hver knude laves en subdictionary der indeholder information om knuden:
-        #   - knudens naboknuder samt vægten af kanten som leder til en nabo
-        #   - dens afstandslabel som bruges i stifinderalgoritmerne
+        #   - knudens naboknuder (neighbours) samt vægten af kanten som leder til en nabo
+        #   - dens afstandslabel (label). bruges i stifinderalgoritmerne
+        #   - dens forgænger (pred). bruges i stifinderalgoritmerne
+        #   - om den er blevet besøgt (visited). bruges i stifinderalgoritmerne 
         # 
         # Strukturen ser sådan ud:
         #    graph = {
-        #        "V1": {"neighbours": [(node, weight)], "label": float},
-        #        "V2": {"neighbours": [(node, weight)], "label": float},
+        #        "V1": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool},
+        #        "V2": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool},
         #        ...
-        #        "Vn": {"neighbours": [(node, weight)], "label": float}
+        #        "Vn": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool}
         #    }
 
         # indsæt alle knuder som nøgler i en dict
-        # (hver knude gives labelet 'inf' (infinity) da dette bruges i stifinderalgoritmerne)
-        self.graph = {node: {"neighbours": [], "label": inf} for node in self.nodes}
+        self.graph = {node: {"neighbours": [], "label": None, "pred": None, "visited": False} for node in self.nodes}
 
         # kør igennem listen af kanter, og definer de enkelte knuders naboknuder 
         # og kantvægten der fører hen til naboknuderne
@@ -95,18 +96,62 @@ class Graph:
 
         nx.draw_networkx_nodes(self.nxGraph, self.graphPos, self.nxGraph.nodes, node_color='lightblue', node_size=300, ax=axes)
         nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
-            
 
     # printGraphStructure: printer naboer, kantvægte og afstandslabel for hver knude i grafen
     def printGraphStructure(self):
         for key in self.graph:
             print(str(key) + ": " + str(self.graph[key]))
 
+    # finder den korteste vej fra startNode til endNode
+    def dijkstra(self, startNode, endNode):
+        for nodeKey in self.graph:
+            self.graph[nodeKey]['label'] = inf
 
+        self.graph[startNode]['label'] = 0
+
+        currentNode = startNode
+
+        while currentNode != endNode:
+            # sæt den nuværende knudes status til besøgt
+            self.graph[currentNode]['visited'] = True
+
+            # opdater label for alle naboknuder
+            for neighbour in self.graph[currentNode]['neighbours']:
+                if self.graph[neighbour[0]]['visited'] == False:
+                    # bestem værdier for afstanden til startNode
+                    old_label = self.graph[neighbour[0]]['label']
+                    new_label = self.graph[currentNode]['label'] + neighbour[1]
+                    # hvis naboknudens afstandslabel er større end den nuværende knudes afstandslabel plus 
+                    # kantvægten til naboknuden, så opdateres naboknudens afstandslabel og forgænger
+                    if old_label > new_label:
+                        self.graph[neighbour[0]]['label'] = new_label
+                        self.graph[neighbour[0]]['pred'] = currentNode
+
+            # lav en liste af alle ikke-besøgte knuder
+            unvisitedNodes = [node for node in self.graph.items() if node[1]['visited'] == False]
+
+            # find den ubesøgte knude med lavest afstandslabel
+            currentNode = min(unvisitedNodes, key=lambda item: item[1]['label'])[0]
+
+        # den korteste vej fra startNode til endNode bestemmes ved 
+        # at "backtrack" i grafen via forgængere fra slut til start
+        currentPathNode = endNode
+        path = [startNode]
+        while currentPathNode != startNode:
+            path.insert(1, currentPathNode)
+            currentPathNode = self.graph[currentPathNode]['pred']
+
+        print(path)
+            
+        
+
+    # finder den korteste vej fra startNode til endNode
+    def aStar(self, startNode, endNode):
+        pass
 
 # test
 if __name__ == "__main__":
-    nodes = ["a", "b", "c"]
-    edges = [['a', 'b', 4], ['b', 'c', 3], ['c', 'a']]
-    G = Graph(nodes, edges, True)
-    G.printGraphStructure()
+    nodes = ["a", "b", "c", "d", "e", "f"]
+    edges = [['a', 'b', 4], ['b', 'c', 3], ['c', 'a', 2], ["c", "f", 1], ['f', 'b', 5], ['c', 'e', 3], ['e', 'f', 1]]
+    G = Graph(nodes, edges, False)
+    G.dijkstra('a', 'e')
