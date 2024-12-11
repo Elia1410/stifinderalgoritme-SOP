@@ -53,23 +53,13 @@ class Ui_Form(object):
 
         self.startEndLayout = QVBoxLayout()
         self.guiLayout.addLayout(self.startEndLayout)
-        self.startLayout = QHBoxLayout()
-        self.endLayout = QHBoxLayout()
-        self.startEndLayout.addLayout(self.startLayout)
-        self.startEndLayout.addLayout(self.endLayout)
-        self.startLayout.addWidget(self.tbStartNode)
-        self.endLayout.addWidget(self.tbEndNode)
+        self.startEndLayout.addWidget(self.tbStartNode)
+        self.startEndLayout.addWidget(self.tbEndNode)
 
 
-        # 'directed' checkbox og 'preset graphs' dropdown menu
+        # 'directed' checkbox
         self.cbDirected = QCheckBox(self, text="Directed")
-        self.ddPresetGraphs = QComboBox(self)
-        self.ddPresetGraphs.addItems(['Preset 1', 'Preset 2', 'Preset 3'])
-
-        self.settingsLayout = QVBoxLayout()
-        self.guiLayout.addLayout(self.settingsLayout)
-        self.settingsLayout.addWidget(self.cbDirected)
-        self.settingsLayout.addWidget(self.ddPresetGraphs)
+        self.startEndLayout.addWidget(self.cbDirected)
 
         # dropdown menu til at vælge algoritme, tegn-knap og start-knap
         self.ddSelectAlgorithm = QComboBox()
