@@ -90,12 +90,35 @@ class Graph:
             self.nxEdgeLabelDict[tuple(edge[:2])] = edge[2]
 
     # draw: tager et matplotlib axes objekt som input, og tegner grafen på det 
-    def draw(self, axes):
+    def draw(self, axes, canvas):
+        axes.clear()
+        
         nx.draw_networkx_edges(self.nxGraph, self.graphPos, self.nxGraph.edges, width=2, edge_color='gray', ax=axes)
         nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
 
         nx.draw_networkx_nodes(self.nxGraph, self.graphPos, self.nxGraph.nodes, node_color='lightblue', node_size=300, ax=axes)
         nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
+
+        canvas.draw()
+
+    def highlightPath(self, axes, nodes, canvas):
+        edgeColors = ['gray'] * len(self.edges)
+        highlightedEdges = [[nodes[i], nodes[i+1]] for i in range(len(nodes)-1)]
+        [edge.sort() for edge in highlightedEdges] # sorter så rækkefølgen af knuder i kanterne
+        for i in range(len(self.edges)):
+            if sorted(self.edges[i][:2]) in highlightedEdges:
+                edgeColors[i] = 'red'
+        print(highlightedEdges)
+
+        axes.clear()
+
+        nx.draw_networkx_edges(self.nxGraph, self.graphPos, self.nxGraph.edges, width=2, edge_color=edgeColors, ax=axes)
+        nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
+
+        nx.draw_networkx_nodes(self.nxGraph, self.graphPos, self.nxGraph.nodes, node_color='lightblue', node_size=300, ax=axes)
+        nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
+
+        canvas.draw()
 
     # printGraphStructure: printer naboer, kantvægte og afstandslabel for hver knude i grafen
     def printGraphStructure(self):
@@ -140,10 +163,9 @@ class Graph:
         while currentPathNode != startNode:
             path.insert(1, currentPathNode)
             currentPathNode = self.graph[currentPathNode]['pred']
-
-        print(path)
-            
         
+        return path
+            
 
     # finder den korteste vej fra startNode til endNode
     def aStar(self, startNode, endNode):

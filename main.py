@@ -48,17 +48,25 @@ class GraphApp(QMainWindow, Ui_Form):
 
         self.setupUi(self)
 
+        self.G = None
+
         self.btnDraw.clicked.connect(self.drawGraph)
+        self.btnStart.clicked.connect(self.findPath)
+
+    def findPath(self):
+        if self.ddSelectAlgorithm.currentText() == "Dijkstra":
+            start = self.tbStartNode.text()
+            end = self.tbEndNode.text()
+            pathNodes = self.G.dijkstra(start, end)
+            print("pathNodes: " + str(pathNodes))
+        self.G.highlightPath(self.ax, pathNodes, self.canvas)
 
     def drawGraph(self):
-        self.ax.clear()
         nodes = nodeTextBoxToList(self.tbNodesInput.text())
         edges = edgeTextBoxToList(self.tbEdgesInput.text())
-        print(nodes)
-        print(edges)
-        G = Graph(nodes, edges, self.cbDirected.isChecked())
-        G.draw(self.ax)
-        self.canvas.draw()
+        self.G = Graph(nodes, edges, self.cbDirected.isChecked())
+        self.G.draw(self.ax, self.canvas)
+        
 
 
 app = QApplication(sys.argv)
@@ -71,5 +79,9 @@ sys.exit(app.exec())
 5x5 grid:
 Nodes: v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 
 Edges: v1-v2, v1-v3, v4-v2, v4-v3, v5-v3, v6-v5, v6-v4, v9-v1, v8-v3, v7-v5, v7-v8, v8-v9, v12-v7, v12-v11, v11-v10, v11-v8, v10-v9, v16-v10, v16-v15, v15-v14, v13-v14, v13-v2, v14-v1, v15-v9, v20-v6, v19-v5, v18-v7, v17-v12, v17-v18, v18-v19, v19-v20, v25-v24, v23-v24, v22-v23, v21-v22, v21-v17, v22-v12, v23-v11, v24-v10, v25-v16
-       
+
+a,b,c,d,e
+a-b-4, b-c-3, c-a-2, b-d-5, c-d-1, c-e-3, d-e-1
+
+
 '''
