@@ -1,9 +1,8 @@
 # PySide6 importeres til at lave en Qt brugeroverflade
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QLineEdit, QPushButton, QCheckBox, QLabel, QHBoxLayout, QGridLayout, QComboBox, QSizePolicy, QLayout
+    QWidget, QVBoxLayout, QLineEdit, QPushButton, 
+    QCheckBox, QLabel, QHBoxLayout, QComboBox
 )
-from PySide6.QtCore import Qt, QSize
 
 # MatPlotLib importeres, så vi kan tegne figure i vores vindue
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -11,8 +10,6 @@ from matplotlib.figure import Figure
 
 class Ui_Form(object):
     def setupUi(self, Form):
-        self.setGeometry(100, 100, 800, 600)
-
         # centralt widget med vertical layout sættes op til at indeholde gui elementer og graph canvas'et
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -78,3 +75,7 @@ class Ui_Form(object):
         self.canvas = FigureCanvas(Figure(figsize=(5, 5)))
         self.central_layout.addWidget(self.canvas)
         self.ax = self.canvas.figure.add_subplot(111)
+
+        # stifinder output
+        self.lblPathDisplay = QLabel(text="")
+        self.central_layout.addWidget(self.lblPathDisplay)
