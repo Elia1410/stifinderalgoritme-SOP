@@ -72,10 +72,10 @@ class Graph:
         # 
         # Strukturen ser sådan ud:
         #    graph = {
-        #        "V1": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool},
-        #        "V2": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool},
+        #        "V1": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool, "heuristik": float},
+        #        "V2": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool, "heuristik": float},
         #        ...
-        #        "Vn": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool}
+        #        "Vn": {"neighbours": [(node, weight)], "label": float, "pred": node, "visited": bool, "heuristik": float}
         #    }
 
         # indsæt alle knuder som nøgler i en dict
@@ -94,18 +94,18 @@ class Graph:
             self.nxEdgeLabelDict[tuple(edge[:2])] = edge[2]
 
     # draw: tager et matplotlib axes objekt som input, og tegner grafen på det 
-    def draw(self, axes, canvas):
+    def draw(self, axes, canvas, drawEdgeLabels):
         axes.clear()
         
         nx.draw_networkx_edges(self.nxGraph, self.graphPos, self.nxGraph.edges, width=2, edge_color='gray', ax=axes)
-        nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
+        if drawEdgeLabels: nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
 
         nx.draw_networkx_nodes(self.nxGraph, self.graphPos, self.nxGraph.nodes, node_color='lightblue', node_size=300, ax=axes)
         nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
 
         canvas.draw()
 
-    def highlightPath(self, axes, nodesInPath, canvas):
+    def highlightPath(self, axes, nodesInPath, canvas, drawEdgeLabels):
         edgeColors = ['gray'] * len(self.edges)
         highlightedEdges = [[nodesInPath[i], nodesInPath[i+1]] for i in range(len(nodesInPath)-1)]
         
@@ -122,12 +122,11 @@ class Graph:
         for i in range(len(graphNodes)):
             if graphNodes[i] in visitedNodes:
                 nodeColors[i] = 'yellow'
-        print(nodeColors)
 
         axes.clear()
 
         nx.draw_networkx_edges(self.nxGraph, self.graphPos, self.nxGraph.edges, width=2, edge_color=edgeColors, ax=axes)
-        nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
+        if drawEdgeLabels: nx.draw_networkx_edge_labels(self.nxGraph, self.graphPos, self.nxEdgeLabelDict, ax=axes)
 
         nx.draw_networkx_nodes(self.nxGraph, self.graphPos, self.nxGraph.nodes, node_color=nodeColors, node_size=300, ax=axes)
         nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
@@ -143,13 +142,17 @@ class Graph:
 
     # finder den korteste vej fra startNode til endNode 
     def dijkstra(self, startNode, endNode):
+        # samtlige knuders afstandslabel sættes til inf (uendelig)
         for nodeKey in self.graph:
             self.graph[nodeKey]['label'] = inf
 
+        # startknudens afstandslabel sættes til 0
         self.graph[startNode]['label'] = 0
 
+        # startknuden sættes som den nuværende knude
         currentNode = startNode
 
+        # hovedlykke
         while currentNode != endNode:
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode]['visited'] = True
@@ -185,11 +188,14 @@ class Graph:
 
     # finder den korteste vej fra startNode til endNode
     def aStar(self, startNode, endNode):
+        # samtlige knuders afstandslabel sættes til inf (uendelig)
         for nodeKey in self.graph:
             self.graph[nodeKey]['label'] = inf
 
+        # startknudens afstandslabel sættes til 0
         self.graph[startNode]['label'] = 0
 
+        # startknuden sættes som den nuværende knude
         currentNode = startNode
 
         # hver knudes heuristik opdateres til dens afstand til slutknuden
@@ -200,6 +206,7 @@ class Graph:
             distToEndNode = sqrt((nodePos[0] - endNodePos[0])**2 + (nodePos[1] - endNodePos[1])**2) 
             self.graph[node]['heuristic'] = distToEndNode
 
+        # hovedlykke
         while currentNode != endNode:
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode]['visited'] = True

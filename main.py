@@ -19,12 +19,15 @@ from ui import Ui_Form
 
 from graph import Graph
 
+from timeit import default_timer as timer
+
 
 # tager et string input som brugeren skriver ind i nodes-textbox'en
 # og konverterer det til en liste af knuder
 def nodeTextBoxToList(nodesString: str):
     nodesStringNoSpaces = nodesString.replace(" ", "")
     return nodesStringNoSpaces.split(",")
+
 
 # tager et string input som brugeren skriver ind i edges-textbox'en
 # og konverterer det til en liste af kanter
@@ -41,7 +44,6 @@ def edgeTextBoxToList(edgesString: str):
     return edgesList
 
 
-# klasse der indeholder programvinduet
 class GraphApp(QMainWindow, Ui_Form):
     def __init__(self):
         super().__init__()
@@ -56,41 +58,27 @@ class GraphApp(QMainWindow, Ui_Form):
     def findPath(self):
         start = self.tbStartNode.text()
         end = self.tbEndNode.text()
+
+        time_start = timer()
+
         if self.ddSelectAlgorithm.currentText() == "Dijkstra":
             pathNodes = self.G.dijkstra(start, end)
         else:
             pathNodes = self.G.aStar(start, end)
-        self.G.highlightPath(self.ax, pathNodes, self.canvas)
-        self.lblPathDisplay.setText(str(pathNodes))
+
+        time_end = timer()
+
+        self.G.highlightPath(self.ax, pathNodes, self.canvas, self.cbDrawEdgeLabels.isChecked())
+        self.lblPathDisplay.setText(f"Path: {pathNodes}   Time: {(time_end-time_start)}s")
 
     def drawGraph(self):
         nodes = nodeTextBoxToList(self.tbNodesInput.text())
         edges = edgeTextBoxToList(self.tbEdgesInput.text())
         self.G = Graph(nodes, edges, self.cbDirected.isChecked())
-        self.G.draw(self.ax, self.canvas)
+        self.G.draw(self.ax, self.canvas, self.cbDrawEdgeLabels.isChecked())
         
 
 app = QApplication(sys.argv)
 window = GraphApp()
 window.show()
 sys.exit(app.exec())
-
-
-'''
-5x5 grid (vægte = 1):
-Nodes: v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 
-Edges: v1-v2-1, v1-v3-1, v4-v2-1, v4-v3-1, v5-v3-1, v6-v5-1, v6-v4-1, v9-v1-1, v8-v3-1, v7-v5-1, v7-v8-1, v8-v9-1, v12-v7-1, v12-v11-1, v11-v10-1, v11-v8-1, v10-v9-1, v16-v10-1, v16-v15-1, v15-v14-1, v13-v14-1, v13-v2-1, v14-v1-1, v15-v9-1, v20-v6-1, v19-v5-1, v18-v7-1, v17-v12-1, v17-v18-1, v18-v19-1, v19-v20-1, v25-v24-1, v23-v24-1, v22-v23-1, v21-v22-1, v21-v17-1, v22-v12-1, v23-v11-1, v24-v10-1, v25-v16-1
-
-5x5 grid:
-Nodes: v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 
-Edges: v1-v2, v1-v3, v4-v2, v4-v3, v5-v3, v6-v5, v6-v4, v9-v1, v8-v3, v7-v5, v7-v8, v8-v9, v12-v7, v12-v11, v11-v10, v11-v8, v10-v9, v16-v10, v16-v15, v15-v14, v13-v14, v13-v2, v14-v1, v15-v9, v20-v6, v19-v5, v18-v7, v17-v12, v17-v18, v18-v19, v19-v20, v25-v24, v23-v24, v22-v23, v21-v22, v21-v17, v22-v12, v23-v11, v24-v10, v25-v16
-
-
-a,b,c,d,e
-a-b-4, b-c-3, c-a-2, b-d-5, c-d-1, c-e-3, d-e-1
-
-
-A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T
-R-P, P-Q, Q-R, R-D, D-A, D-B, D-C, G-E, F-G, E-F, G-H, H-I, I-J, J-K, K-I, L-J, K-L, L-M, M-N, N-O, P-N, G-D, H-T, M-S, I-R
-
-'''

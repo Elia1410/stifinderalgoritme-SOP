@@ -57,6 +57,8 @@ class Ui_Form(object):
         # 'directed' checkbox
         self.cbDirected = QCheckBox(self, text="Directed")
         self.startEndLayout.addWidget(self.cbDirected)
+        self.cbDrawEdgeLabels = QCheckBox(self, text="Draw weights")
+        self.startEndLayout.addWidget(self.cbDrawEdgeLabels)
 
         # dropdown menu til at vælge algoritme, tegn-knap og start-knap
         self.ddSelectAlgorithm = QComboBox()
