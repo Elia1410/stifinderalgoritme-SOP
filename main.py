@@ -62,7 +62,7 @@ class GraphApp(QMainWindow, Ui_Form):
         time_start = timer()
 
         if self.ddSelectAlgorithm.currentText() == "Dijkstra":
-            pathNodes = self.G.dijkstra(start, end)
+            pathNodes = self.G.dijkstraPQueue(start, end)
         else:
             pathNodes = self.G.aStar(start, end)
 
