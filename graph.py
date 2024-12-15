@@ -90,6 +90,10 @@ class Graph:
             if self.directed == False:
                 self.graph[edge[1]]["neighbours"].append((edge[0], edge[2]))
 
+        # sørg for at der ikke fidnes nogen duplikerede kanter
+        for node in self.graph:
+            self.graph[node]['neighbours'] = list(set(self.graph[node]['neighbours']))
+
         # en dictionary laves som networkx kan bruge til at tegne kantvægte (edge_labels) på grafen
         self.nxEdgeLabelDict = {}
         for edge in edges:
@@ -134,6 +138,17 @@ class Graph:
         nx.draw_networkx_labels(self.nxGraph, self.graphPos, ax=axes)
 
         canvas.draw()
+    
+    # minUnvisited giver den ikke-besøgte knude i grafen med det mindste afstandslabel
+    def minUnvisited(self, withHeuristic):
+        minLabel = inf
+        minNode = None
+        for node in self.graph:
+            dist = self.graph[node]['label'] + withHeuristic * self.graph[node]['heuristic']
+            if self.graph[node]['visited'] == False and dist < minLabel:
+                minLabel = dist
+                minNode = node
+        return minNode
 
 
     # printGraphStructure: printer naboer, kantvægte og afstandslabel for hver knude i grafen
@@ -144,21 +159,24 @@ class Graph:
 
     # finder den korteste vej fra startNode til endNode 
     def dijkstra(self, startNode, endNode):
-        # samtlige knuders afstandslabel sættes til inf (uendelig)
+        # samtlige knuders afstandslabel sættes til inf (uendelig) undtagen startknuden som sættes til 0
         for nodeKey in self.graph:
-            self.graph[nodeKey]['label'] = inf
-
-        # startknudens afstandslabel sættes til 0
-        self.graph[startNode]['label'] = 0
+            if nodeKey == startNode:
+                self.graph[nodeKey]['label'] = 0
+            else:
+                self.graph[nodeKey]['label'] = inf
 
         # startknuden sættes som den nuværende knude
         currentNode = startNode
 
         # hovedlykke
-        while currentNode != endNode:
+        while currentNode != endNode: 
+            # sæt den nuværende knude til den ikke-besøgte knude i grafen med det mindste afstandslabel 
+            currentNode = self.minUnvisited(withHeuristic=False)
+            
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode]['visited'] = True
-
+            
             # opdater label for alle naboknuder
             for neighbour in self.graph[currentNode]['neighbours']:
                 if self.graph[neighbour[0]]['visited'] == False:
@@ -170,12 +188,6 @@ class Graph:
                     if old_label > new_label:
                         self.graph[neighbour[0]]['label'] = new_label
                         self.graph[neighbour[0]]['pred'] = currentNode
-
-            # lav en liste af alle ikke-besøgte knuder
-            unvisitedNodes = [node for node in self.graph.items() if node[1]['visited'] == False]
-
-            # find den ubesøgte knude med lavest afstandslabel
-            currentNode = min(unvisitedNodes, key=lambda item: item[1]['label'])[0]
 
         # den korteste vej fra startNode til endNode bestemmes ved 
         # at "backtrack" i grafen via forgængere fra slut til start
@@ -210,8 +222,12 @@ class Graph:
 
         # hovedlykke
         while currentNode != endNode:
+            # sæt den nuværende knude til den ikke-besøgte knude i grafen med det mindste afstandslabel 
+            currentNode = self.minUnvisited(withHeuristic=True)
+
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode]['visited'] = True
+            print(currentNode + ":  " + str(self.graph[currentNode]))
 
             # opdater label for alle naboknuder
             for neighbour in self.graph[currentNode]['neighbours']:
@@ -224,12 +240,6 @@ class Graph:
                     if old_label > new_label:
                         self.graph[neighbour[0]]['label'] = new_label
                         self.graph[neighbour[0]]['pred'] = currentNode
-
-            # lav en liste af alle ikke-besøgte knuder
-            unvisitedNodes = [node for node in self.graph.items() if node[1]['visited'] == False]
-
-            # find den ubesøgte knude med lavest afstandslabel + dens heuristik
-            currentNode = min(unvisitedNodes, key=lambda item: item[1]['label']+item[1]['heuristic'])[0]
 
         # den korteste vej fra startNode til endNode bestemmes ved 
         # at "backtrack" i grafen via forgængere fra slut til start
@@ -244,25 +254,22 @@ class Graph:
 
     # finder den korteste vej fra startNode til endNode 
     def dijkstraPQueue(self, startNode, endNode):
-        # samtlige knuders afstandslabel sættes til inf (uendelig)
-        for nodeKey in self.graph:
-            self.graph[nodeKey]['label'] = inf
-        
         # startknudens afstandslabel sættes til 0
         self.graph[startNode]['label'] = 0
-
+        
         # priority queue initialiseres
         pQueue = [(self.graph[startNode]['label'], startNode)]
         for node in self.nodes:
             if node != startNode:
+                self.graph[node]['label'] = inf
                 pQueue.append((self.graph[node]['label'], node))
 
         # nuværende knude sættes til startknuden
         currentNode = pQueue[0]
 
         # hovedlykke
-        while currentNode[1] != endNode:
-            # fjern den nuværende knude fra priority queue
+        while currentNode[1] != endNode and len(pQueue) != 0:
+            # fjern den nuværende knude fra priority queue og gem den i currentNode
             currentNode = pQueue.pop(0)
 
             # sæt den nuværende knudes status til besøgt
@@ -284,10 +291,64 @@ class Graph:
                         pQueue.remove((old_label, neighbour[0]))
                         insort(pQueue, (new_label, neighbour[0]))
 
-            # nuværende knude sættes til den forreste knude i priority queue
-            currentNode = pQueue[0]
+        # den korteste vej fra startNode til endNode bestemmes ved 
+        # at "backtrack" i grafen via forgængere fra slut til start
+        currentPathNode = endNode
+        path = [startNode]
+        while currentPathNode != startNode:
+            path.insert(1, currentPathNode)
+            currentPathNode = self.graph[currentPathNode]['pred']
+        
+        return path
+    
 
+    # finder den korteste vej fra startNode til endNode
+    def aStarPQueue(self, startNode, endNode):
+        # startknudens afstandslabel sættes til 0
+        self.graph[startNode]['label'] = 0
+        
+        # slutknudens koordinater defineres
+        endNodePos = self.graphPos[endNode]
+        # priority queue initialiseres
+        pQueue = [(self.graph[startNode]['label'], startNode)]
+        for node in self.nodes:
+            if node != startNode:
+                self.graph[node]['label'] = inf
+                pQueue.append((self.graph[node]['label'], node))
 
+            # hver knudes heuristik opdateres til dens afstand til slutknuden
+            nodePos = self.graphPos[node] # giver en tuple (x, y)
+            # afstanden fra den aktuelle knude til slutknuden beregnes
+            distToEndNode = sqrt((nodePos[0] - endNodePos[0])**2 + (nodePos[1] - endNodePos[1])**2) 
+            self.graph[node]['heuristic'] = distToEndNode
+
+        # nuværende knude sættes til startknuden
+        currentNode = pQueue[0]
+
+        # hovedlykke
+        while currentNode[1] != endNode:
+            # fjern den nuværende knude fra priority queue og gem den i currentNode
+            currentNode = pQueue.pop(0)
+
+            # sæt den nuværende knudes status til besøgt
+            self.graph[currentNode[1]]['visited'] = True
+            print(currentNode[1] + ":  " + str(self.graph[currentNode[1]]))
+
+            # opdater label for alle naboknuder
+            for neighbour in self.graph[currentNode[1]]['neighbours']:
+                if self.graph[neighbour[0]]['visited'] == False:
+                    # bestem værdier for afstanden til startNode
+                    old_label = self.graph[neighbour[0]]['label']
+                    new_label = self.graph[currentNode[1]]['label'] + neighbour[1]
+                    # hvis naboknudens afstandslabel er større end den nuværende knudes afstandslabel plus 
+                    # kantvægten til naboknuden, så opdateres naboknudens afstandslabel og forgænger
+                    if old_label > new_label:
+                        self.graph[neighbour[0]]['label'] = new_label
+                        self.graph[neighbour[0]]['pred'] = currentNode[1]
+
+                        # opdater naboknudens position i priority queue
+                        pQueue.remove((old_label + self.graph[neighbour[0]]['heuristic'], neighbour[0]))
+                        insort(pQueue, (new_label + self.graph[neighbour[0]]['heuristic'], neighbour[0]))
 
         # den korteste vej fra startNode til endNode bestemmes ved 
         # at "backtrack" i grafen via forgængere fra slut til start
@@ -305,3 +366,4 @@ if __name__ == "__main__":
     edges = [['a', 'b', 4], ['b', 'c', 3], ['c', 'a', 2], ["c", "f", 1], ['f', 'b', 5], ['c', 'e', 3], ['e', 'f', 1]]
     G = Graph(nodes, edges, False)
     G.dijkstra('a', 'e')
+    G.printGraphStructure()

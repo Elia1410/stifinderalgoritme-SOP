@@ -62,7 +62,7 @@ class Ui_Form(object):
 
         # dropdown menu til at vælge algoritme, tegn-knap og start-knap
         self.ddSelectAlgorithm = QComboBox()
-        self.ddSelectAlgorithm.addItems(['Dijkstra', 'A*'])
+        self.ddSelectAlgorithm.addItems(['Dijkstra', 'A*', 'Dijkstra (pQ)', 'A* (pQ)'])
         self.btnStart = QPushButton(text="Find shortest path")
         self.btnDraw = QPushButton(text="Draw graph")
         
