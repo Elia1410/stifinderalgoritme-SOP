@@ -54,11 +54,22 @@ class Ui_Form(object):
         self.startEndLayout.addWidget(self.tbEndNode)
 
 
-        # 'directed' checkbox
+        # 'directed' checkbox og 'draw weights' checkbox
         self.cbDirected = QCheckBox(self, text="Directed")
         self.startEndLayout.addWidget(self.cbDirected)
         self.cbDrawEdgeLabels = QCheckBox(self, text="Draw weights")
         self.startEndLayout.addWidget(self.cbDrawEdgeLabels)
+
+        # 'generate graph' knap og tekstbox
+        self.btnGenerateGraph = QPushButton(text="Generate graph")
+        self.btnGenerateGraph.setFixedWidth(90)
+        self.tbGraphSize = QLineEdit()
+        self.tbGraphSize.setPlaceholderText("n nodes")
+        self.tbGraphSize.setFixedWidth(90)
+        self.inputLayout.addWidget(self.btnGenerateGraph)
+        self.inputLayout.addWidget(self.tbGraphSize)
+
+
 
         # dropdown menu til at vælge algoritme, tegn-knap og start-knap
         self.ddSelectAlgorithm = QComboBox()

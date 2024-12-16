@@ -25,7 +25,7 @@ import networkx as nx
 
 from math import sqrt, inf
 
-from bisect import insort
+import heapq
 
 
 class Graph:
@@ -227,7 +227,6 @@ class Graph:
 
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode]['visited'] = True
-            print(currentNode + ":  " + str(self.graph[currentNode]))
 
             # opdater label for alle naboknuder
             for neighbour in self.graph[currentNode]['neighbours']:
@@ -252,25 +251,25 @@ class Graph:
         return path
     
 
-    # finder den korteste vej fra startNode til endNode 
+    # finder den korteste vej fra startNode til endNode
     def dijkstraPQueue(self, startNode, endNode):
         # startknudens afstandslabel sættes til 0
         self.graph[startNode]['label'] = 0
         
         # priority queue initialiseres
-        pQueue = [(self.graph[startNode]['label'], startNode)]
+        pQueue = []
         for node in self.nodes:
             if node != startNode:
                 self.graph[node]['label'] = inf
-                pQueue.append((self.graph[node]['label'], node))
+            heapq.heappush(pQueue, (self.graph[node]['label'], node))
 
         # nuværende knude sættes til startknuden
         currentNode = pQueue[0]
 
         # hovedlykke
-        while currentNode[1] != endNode and len(pQueue) != 0:
+        while currentNode[1] != endNode:
             # fjern den nuværende knude fra priority queue og gem den i currentNode
-            currentNode = pQueue.pop(0)
+            currentNode = heapq.heappop(pQueue)
 
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode[1]]['visited'] = True
@@ -287,9 +286,10 @@ class Graph:
                         self.graph[neighbour[0]]['label'] = new_label
                         self.graph[neighbour[0]]['pred'] = currentNode[1]
 
-                        # opdater naboknudens position i priority queue
-                        pQueue.remove((old_label, neighbour[0]))
-                        insort(pQueue, (new_label, neighbour[0]))
+                        # push knuden i priority queue så den forbliver sorteret
+                        # NB: den gamle instans af knuden i køen fjernes ikke, 
+                        # da dette ville tilføje unødvendig tidskompleksitet
+                        heapq.heappush(pQueue, (new_label, neighbour[0]))
 
         # den korteste vej fra startNode til endNode bestemmes ved 
         # at "backtrack" i grafen via forgængere fra slut til start
@@ -310,11 +310,11 @@ class Graph:
         # slutknudens koordinater defineres
         endNodePos = self.graphPos[endNode]
         # priority queue initialiseres
-        pQueue = [(self.graph[startNode]['label'], startNode)]
+        pQueue = []
         for node in self.nodes:
             if node != startNode:
                 self.graph[node]['label'] = inf
-                pQueue.append((self.graph[node]['label'], node))
+            heapq.heappush(pQueue, (self.graph[node]['label'], node))
 
             # hver knudes heuristik opdateres til dens afstand til slutknuden
             nodePos = self.graphPos[node] # giver en tuple (x, y)
@@ -332,7 +332,6 @@ class Graph:
 
             # sæt den nuværende knudes status til besøgt
             self.graph[currentNode[1]]['visited'] = True
-            print(currentNode[1] + ":  " + str(self.graph[currentNode[1]]))
 
             # opdater label for alle naboknuder
             for neighbour in self.graph[currentNode[1]]['neighbours']:
@@ -346,9 +345,10 @@ class Graph:
                         self.graph[neighbour[0]]['label'] = new_label
                         self.graph[neighbour[0]]['pred'] = currentNode[1]
 
-                        # opdater naboknudens position i priority queue
-                        pQueue.remove((old_label + self.graph[neighbour[0]]['heuristic'], neighbour[0]))
-                        insort(pQueue, (new_label + self.graph[neighbour[0]]['heuristic'], neighbour[0]))
+                        # push knuden i priority queue så den forbliver sorteret
+                        # NB: den gamle instans af knuden i køen fjernes ikke, 
+                        # da dette ville tilføje unødvendig tidskompleksitet
+                        heapq.heappush(pQueue, (new_label + self.graph[neighbour[0]]['heuristic'], neighbour[0]))
 
         # den korteste vej fra startNode til endNode bestemmes ved 
         # at "backtrack" i grafen via forgængere fra slut til start

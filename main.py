@@ -21,6 +21,8 @@ from graph import Graph
 
 from timeit import default_timer as timer
 
+from graphmaker import makeGraph
+
 
 # tager et string input som brugeren skriver ind i nodes-textbox'en
 # og konverterer det til en liste af knuder
@@ -54,6 +56,15 @@ class GraphApp(QMainWindow, Ui_Form):
 
         self.btnDraw.clicked.connect(self.drawGraph)
         self.btnStart.clicked.connect(self.findPath)
+        self.btnGenerateGraph.clicked.connect(self.generateGraph)
+
+        self.nodes = []
+        self.edges = []
+
+    def generateGraph(self):
+        n = int(self.tbGraphSize.text())
+        self.nodes, self.edges = makeGraph(n)
+        self.drawGraph()
 
     def findPath(self):
         start = self.tbStartNode.text()
@@ -76,9 +87,10 @@ class GraphApp(QMainWindow, Ui_Form):
         self.lblPathDisplay.setText(f"Path: {pathNodes}   Time: {(time_end-time_start)}s")
 
     def drawGraph(self):
-        nodes = nodeTextBoxToList(self.tbNodesInput.text())
-        edges = edgeTextBoxToList(self.tbEdgesInput.text())
-        self.G = Graph(nodes, edges, self.cbDirected.isChecked())
+        if self.tbNodesInput.text() != "":
+            self.nodes = nodeTextBoxToList(self.tbNodesInput.text())
+            self.edges = edgeTextBoxToList(self.tbEdgesInput.text())
+        self.G = Graph(self.nodes, self.edges, self.cbDirected.isChecked())
         self.G.draw(self.ax, self.canvas, self.cbDrawEdgeLabels.isChecked())
         
 
